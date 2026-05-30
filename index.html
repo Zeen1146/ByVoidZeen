@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+  <!-- ================================================================
+       META TAGS & SEO — Dibuat otomatis oleh JavaScript setelah data GitHub dimuat
+       ================================================================ -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0a0a0a" />
+
+  <!-- Open Graph & Twitter Card — diperbarui otomatis via JS -->
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <title>Portfolio — Loading...</title>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/favicon.png" id="favicon" />
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="assets/icon-192.png" />
+
+  <!-- Stylesheet Utama -->
+  <link rel="stylesheet" href="css/style.css" />
+
+  <!-- Font — Inter dari Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- ================================================================
+       LOADING SCREEN
+       ================================================================ -->
+  <div id="loading-screen" class="loading-screen">
+    <div class="loading-logo">
+      <div class="loading-ring"></div>
+      <span class="loading-text">Memuat portfolio...</span>
+    </div>
+  </div>
+
+  <!-- ================================================================
+       COMMAND PALETTE (CTRL+K)
+       ================================================================ -->
+  <div id="command-palette" class="command-palette hidden">
+    <div class="command-overlay"></div>
+    <div class="command-modal">
+      <div class="command-search-wrapper">
+        <svg class="command-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" id="command-input" class="command-input" placeholder="Cari perintah..." autocomplete="off" />
+        <kbd class="command-esc">ESC</kbd>
+      </div>
+      <div class="command-list" id="command-list"></div>
+    </div>
+  </div>
+
+  <!-- ================================================================
+       TERMINAL MODE (rahasia — ketik /terminal)
+       ================================================================ -->
+  <div id="terminal-modal" class="terminal-modal hidden">
+    <div class="terminal-window">
+      <div class="terminal-header">
+        <div class="terminal-dots">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+        </div>
+        <span class="terminal-title">developer@portfolio ~ </span>
+        <button class="terminal-close" id="terminal-close">✕</button>
+      </div>
+      <div class="terminal-body" id="terminal-body">
+        <div class="terminal-line">
+          <span class="terminal-prompt">$ </span>
+          <span class="terminal-output">Selamat datang di Terminal Portfolio. Ketik <strong>help</strong> untuk daftar perintah.</span>
+        </div>
+      </div>
+      <div class="terminal-input-row">
+        <span class="terminal-prompt">$ </span>
+        <input type="text" id="terminal-input" class="terminal-input-field" placeholder="ketik perintah..." autocomplete="off" />
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================
+       NAVBAR
+       ================================================================ -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-container">
+      <a href="#hero" class="nav-logo">
+        <img src="" alt="avatar" id="nav-avatar" class="nav-avatar" />
+        <span id="nav-username" class="nav-name">Portfolio</span>
+      </a>
+
+      <ul class="nav-links" id="nav-links">
+        <li><a href="#about" class="nav-link">Tentang</a></li>
+        <li><a href="#skills" class="nav-link">Skill</a></li>
+        <li><a href="#projects" class="nav-link">Project</a></li>
+        <li><a href="#contact" class="nav-link">Kontak</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <!-- Shortcut Command Palette -->
+        <button class="nav-btn cmd-trigger" id="cmd-trigger" title="CTRL+K">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <kbd>⌘K</kbd>
+        </button>
+
+        <!-- Toggle Theme -->
+        <button class="nav-btn theme-toggle" id="theme-toggle" title="Toggle Dark/Light Mode">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+          <svg class="icon-sun hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/>
+            <line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+        </button>
+
+        <!-- Hamburger Mobile -->
+        <button class="nav-btn hamburger" id="hamburger" aria-label="Menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu hidden" id="mobile-menu">
+      <a href="#about" class="mobile-link">Tentang</a>
+      <a href="#skills" class="mobile-link">Skill</a>
+      <a href="#projects" class="mobile-link">Project</a>
+      <a href="#contact" class="mobile-link">Kontak</a>
+    </div>
+  </nav>
+
+  <!-- ================================================================
+       HERO SECTION
+       ================================================================ -->
+  <section id="hero" class="hero-section">
+    <!-- Latar belakang animasi floating -->
+    <div class="hero-bg">
+      <div class="hero-orb orb-1"></div>
+      <div class="hero-orb orb-2"></div>
+      <div class="hero-orb orb-3"></div>
+      <div class="hero-grid"></div>
+    </div>
+
+    <div class="hero-container">
+      <!-- Avatar -->
+      <div class="hero-avatar-wrapper">
+        <div class="avatar-ring">
+          <img src="" alt="Profile" id="hero-avatar" class="hero-avatar skeleton" />
+        </div>
+        <span class="avatar-badge online">●</span>
+      </div>
+
+      <!-- Teks Hero -->
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span class="badge-dot"></span>
+          <span id="hero-location">Memuat lokasi...</span>
+        </div>
+
+        <h1 class="hero-name">
+          <span id="hero-name" class="skeleton-text">Memuat nama...</span>
+        </h1>
+
+        <div class="hero-typing-wrapper">
+          <span class="typing-prefix">Seorang </span>
+          <span id="typing-text" class="typing-text"></span>
+          <span class="typing-cursor">|</span>
+        </div>
+
+        <p id="hero-bio" class="hero-bio skeleton-text">Memuat bio...</p>
+
+        <!-- Statistik Cepat -->
+        <div class="hero-stats">
+          <div class="stat-item">
+            <span class="stat-num" id="stat-repos">—</span>
+            <span class="stat-label">Repository</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-num" id="stat-followers">—</span>
+            <span class="stat-label">Followers</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-num" id="stat-following">—</span>
+            <span class="stat-label">Following</span>
+          </div>
+        </div>
+
+        <!-- Tombol Aksi -->
+        <div class="hero-actions">
+          <a href="#" id="btn-github" class="btn btn-primary" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+            </svg>
+            GitHub
+          </a>
+          <a href="#contact" class="btn btn-secondary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+            </svg>
+            Kontak
+          </a>
+          <a href="#" id="btn-cv" class="btn btn-ghost">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Download CV
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scroll Indicator -->
+    <div class="scroll-indicator">
+      <span>Gulir ke bawah</span>
+      <div class="scroll-arrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+          <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================
+       ABOUT SECTION
+       ================================================================ -->
+  <section id="about" class="section about-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Tentang Saya</span>
+        <h2 class="section-title">Siapa saya?</h2>
+      </div>
+
+      <div class="about-grid">
+        <div class="about-card glass-card">
+          <div class="about-info" id="about-info">
+            <!-- Diisi otomatis oleh JS -->
+            <div class="about-skeleton">
+              <div class="skeleton-block"></div>
+              <div class="skeleton-block short"></div>
+              <div class="skeleton-block"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="about-readme glass-card" id="about-readme">
+          <!-- README profil GitHub jika tersedia -->
+          <p class="about-placeholder">Memuat informasi profil...</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================
+       STATISTIK GITHUB
+       ================================================================ -->
+  <section id="stats" class="section stats-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Statistik</span>
+        <h2 class="section-title">Aktivitas GitHub</h2>
+      </div>
+
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card glass-card">
+          <div class="stat-icon icon-repo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
+              <path d="M3 3h18v18H3z"/><path d="M3 9h18"/><path d="M9 21V9"/>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-count counter" id="count-repos" data-target="0">0</span>
+            <span class="stat-name">Repository</span>
+          </div>
+        </div>
+        <div class="stat-card glass-card">
+          <div class="stat-icon icon-star">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-count counter" id="count-stars" data-target="0">0</span>
+            <span class="stat-name">Total Bintang</span>
+          </div>
+        </div>
+        <div class="stat-card glass-card">
+          <div class="stat-icon icon-fork">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
+              <circle cx="12" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><path d="M18 9v1a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9"/><line x1="12" y1="12" x2="12" y2="15"/>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-count counter" id="count-forks" data-target="0">0</span>
+            <span class="stat-name">Total Fork</span>
+          </div>
+        </div>
+        <div class="stat-card glass-card">
+          <div class="stat-icon icon-follower">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-count counter" id="count-followers" data-target="0">0</span>
+            <span class="stat-name">Followers</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contribution Heatmap -->
+      <div class="contribution-wrapper glass-card">
+        <h3 class="contribution-title">Kontribusi Tahun Ini</h3>
+        <div id="contribution-graph" class="contribution-graph">
+          <p class="contribution-loading">Memuat grafik kontribusi...</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================
+       SKILL SECTION
+       ================================================================ -->
+  <section id="skills" class="section skills-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Keahlian</span>
+        <h2 class="section-title">Bahasa & Teknologi</h2>
+        <p class="section-desc">Dihitung otomatis berdasarkan repository GitHub</p>
+      </div>
+
+      <div class="skills-wrapper" id="skills-wrapper">
+        <!-- Diisi otomatis oleh JS -->
+        <div class="skills-loading">
+          <div class="skill-skeleton" style="width:80%"></div>
+          <div class="skill-skeleton" style="width:60%"></div>
+          <div class="skill-skeleton" style="width:45%"></div>
+          <div class="skill-skeleton" style="width:30%"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================
+       FEATURED PROJECT
+       ================================================================ -->
+  <section id="featured" class="section featured-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Unggulan</span>
+        <h2 class="section-title">Project Pilihan</h2>
+      </div>
+      <div class="featured-grid" id="featured-grid">
+        <!-- Diisi otomatis oleh JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================
+       PROJECT SECTION
+       ================================================================ -->
+  <section id="projects" class="section projects-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Portfolio</span>
+        <h2 class="section-title">Semua Project</h2>
+      </div>
+
+      <!-- Toolbar: Search, Filter, Sort -->
+      <div class="projects-toolbar">
+        <div class="search-wrapper">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input type="text" id="project-search" class="search-input" placeholder="Cari project..." autocomplete="off" />
+          <button class="search-clear hidden" id="search-clear">✕</button>
+        </div>
+
+        <div class="filter-group" id="filter-group">
+          <button class="filter-btn active" data-filter="all">Semua</button>
+          <button class="filter-btn" data-filter="website">Website</button>
+          <button class="filter-btn" data-filter="application">Aplikasi</button>
+          <button class="filter-btn" data-filter="tools">Tools</button>
+          <button class="filter-btn" data-filter="other">Lainnya</button>
+        </div>
+
+        <div class="sort-wrapper">
+          <select id="sort-select" class="sort-select">
+            <option value="updated">Terbaru</option>
+            <option value="oldest">Terlama</option>
+            <option value="stars">Star Terbanyak</option>
+            <option value="forks">Fork Terbanyak</option>
+            <option value="name">A-Z</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Jumlah Hasil -->
+      <div class="project-count" id="project-count">
+        Menampilkan <strong id="count-shown">0</strong> dari <strong id="count-total">0</strong> project
+      </div>
+
+      <!-- Grid Project -->
+      <div class="projects-grid" id="projects-grid">
+        <!-- Skeleton Loading -->
+        <div class="project-card skeleton-card"></div>
+        <div class="project-card skeleton-card"></div>
+        <div class="project-card skeleton-card"></div>
+        <div class="project-card skeleton-card"></div>
+        <div class="project-card skeleton-card"></div>
+        <div class="project-card skeleton-card"></div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state hidden" id="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <p>Tidak ada project yang cocok</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================
+       TIMELINE SECTION
+       ================================================================ -->
+  <section id="timeline" class="section timeline-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Riwayat</span>
+        <h2 class="section-title">Perjalanan</h2>
+      </div>
+      <div class="timeline" id="timeline-list">
+        <!-- Diisi otomatis oleh JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================
+       CONTACT SECTION
+       ================================================================ -->
+  <section id="contact" class="section contact-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Kontak</span>
+        <h2 class="section-title">Mari Terhubung</h2>
+        <p class="section-desc">Punya project menarik? Ayo kita diskusikan.</p>
+      </div>
+
+      <div class="contact-grid">
+        <!-- Info Kontak -->
+        <div class="contact-info glass-card">
+          <div id="contact-links" class="contact-links">
+            <!-- Diisi JS -->
+          </div>
+          <!-- Visitor Counter -->
+          <div class="visitor-counter">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+            </svg>
+            <span id="visitor-count">0</span> pengunjung
+          </div>
+        </div>
+
+        <!-- Form Kontak -->
+        <div class="contact-form-wrapper glass-card">
+          <div class="form-group">
+            <label class="form-label">Nama</label>
+            <input type="text" id="form-name" class="form-input" placeholder="Nama kamu" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" id="form-email" class="form-input" placeholder="email@contoh.com" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Pesan</label>
+            <textarea id="form-message" class="form-textarea" placeholder="Tulis pesanmu di sini..." rows="5"></textarea>
+          </div>
+          <button class="btn btn-primary btn-full" id="form-submit">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+              <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+            Kirim via Email
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================
+       FOOTER
+       ================================================================ -->
+  <footer class="footer">
+    <div class="container footer-container">
+      <div class="footer-left">
+        <span>Dibuat dengan</span>
+        <span class="footer-heart">♥</span>
+        <span>menggunakan GitHub API</span>
+      </div>
+      <div class="footer-right">
+        <a href="#hero" class="footer-up">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
+          </svg>
+          Kembali ke atas
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ================================================================
+       MODAL PREVIEW WEBSITE
+       ================================================================ -->
+  <div id="preview-modal" class="preview-modal hidden">
+    <div class="preview-overlay"></div>
+    <div class="preview-container">
+      <div class="preview-header">
+        <div class="preview-url" id="preview-url">https://...</div>
+        <div class="preview-actions">
+          <a href="#" id="preview-open" target="_blank" class="btn btn-ghost btn-sm">Buka ↗</a>
+          <button class="btn btn-ghost btn-sm" id="preview-close">✕ Tutup</button>
+        </div>
+      </div>
+      <iframe id="preview-iframe" class="preview-iframe" sandbox="allow-scripts allow-same-origin allow-forms" loading="lazy"></iframe>
+    </div>
+  </div>
+
+  <!-- ================================================================
+       BOTTOM NAV MOBILE
+       ================================================================ -->
+  <nav class="bottom-nav" id="bottom-nav">
+    <a href="#hero" class="bottom-nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      <span>Home</span>
+    </a>
+    <a href="#skills" class="bottom-nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+        <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+      </svg>
+      <span>Skill</span>
+    </a>
+    <a href="#projects" class="bottom-nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+      </svg>
+      <span>Project</span>
+    </a>
+    <a href="#contact" class="bottom-nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+      </svg>
+      <span>Kontak</span>
+    </a>
+  </nav>
+
+  <!-- ================================================================
+       SCRIPT — Urutan loading penting!
+       ================================================================ -->
+  <script src="js/config.js"></script>
+  <script src="js/github.js"></script>
+  <script src="js/projects.js"></script>
+  <script src="js/terminal.js"></script>
+  <script src="js/ui.js"></script>
+</body>
+</html>
