@@ -1788,3 +1788,386 @@ kbd {
   /* Footer */
   .footer-container { flex-direction: column; text-align: center; }
 }
+
+/* ================================================================
+   FILE EXPLORER MODAL
+   ================================================================ */
+.file-explorer-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.explorer-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.explorer-container {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 720px;
+  max-height: 82vh;
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.8);
+  animation: explorerIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes explorerIn {
+  from { opacity: 0; transform: scale(0.96) translateY(-12px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+[data-theme="light"] .explorer-container {
+  background: #ffffff;
+  border-color: #d0d7de;
+  color: #1f2328;
+}
+
+/* Header */
+.explorer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #161b22;
+  border-bottom: 1px solid #30363d;
+  flex-shrink: 0;
+}
+
+[data-theme="light"] .explorer-header {
+  background: #f6f8fa;
+  border-color: #d0d7de;
+}
+
+.explorer-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.explorer-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.explorer-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.explorer-title-icon {
+  font-size: 14px;
+}
+
+.explorer-title {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: #c9d1d9;
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+[data-theme="light"] .explorer-title { color: #1f2328; }
+
+.explorer-subtitle {
+  font-size: 11px;
+  color: #8b949e;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.explorer-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: #8b949e;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.explorer-close-btn:hover {
+  background: rgba(255,255,255,0.08);
+  color: #c9d1d9;
+}
+
+/* Path Bar */
+.explorer-path-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 16px;
+  background: #0d1117;
+  border-bottom: 1px solid #21262d;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: #8b949e;
+  flex-shrink: 0;
+}
+
+[data-theme="light"] .explorer-path-bar {
+  background: #f6f8fa;
+  border-color: #d0d7de;
+  color: #656d76;
+}
+
+.path-segment { color: #58a6ff; }
+[data-theme="light"] .path-segment { color: #0969da; }
+.path-sep { color: #30363d; margin: 0 2px; }
+
+/* Body / Konten Tree */
+.explorer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 8px;
+  scrollbar-width: thin;
+  scrollbar-color: #30363d transparent;
+}
+
+.explorer-body::-webkit-scrollbar { width: 5px; }
+.explorer-body::-webkit-scrollbar-track { background: transparent; }
+.explorer-body::-webkit-scrollbar-thumb { background: #30363d; border-radius: 99px; }
+
+/* Loading */
+.explorer-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 48px;
+  color: #8b949e;
+  font-size: 13px;
+  font-family: var(--font-mono);
+}
+
+.explorer-spinner {
+  width: 32px;
+  height: 32px;
+  border: 2px solid #21262d;
+  border-top-color: #58a6ff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+/* Tree List */
+.explorer-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.explorer-item {
+  margin: 0;
+}
+
+/* Baris file/folder */
+.explorer-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: default;
+  transition: background 0.12s ease;
+  min-height: 30px;
+  user-select: none;
+}
+
+.explorer-folder {
+  cursor: pointer;
+}
+
+.explorer-folder:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+[data-theme="light"] .explorer-folder:hover {
+  background: rgba(0,0,0,0.04);
+}
+
+.explorer-file:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+[data-theme="light"] .explorer-file:hover {
+  background: rgba(0,0,0,0.02);
+}
+
+.explorer-arrow {
+  font-size: 10px;
+  color: #8b949e;
+  width: 14px;
+  text-align: center;
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.explorer-icon {
+  font-size: 14px;
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.explorer-name {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: #c9d1d9;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+[data-theme="light"] .explorer-name { color: #1f2328; }
+
+.explorer-file-link {
+  text-decoration: none;
+  transition: color 0.12s ease;
+}
+
+.explorer-file-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Badge LIVE untuk file web */
+.explorer-live-link {
+  color: #58a6ff !important;
+}
+
+.explorer-live-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  letter-spacing: 0.08em;
+  border-radius: 3px;
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Badge jumlah file di dalam folder */
+.explorer-badge {
+  font-size: 10px;
+  color: #8b949e;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid #30363d;
+  border-radius: 99px;
+  padding: 0 6px;
+  min-width: 22px;
+  text-align: center;
+  font-family: var(--font-mono);
+  flex-shrink: 0;
+}
+
+[data-theme="light"] .explorer-badge {
+  background: rgba(0,0,0,0.04);
+  border-color: #d0d7de;
+}
+
+/* Ukuran file */
+.explorer-size {
+  font-size: 10px;
+  color: #8b949e;
+  font-family: var(--font-mono);
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* Sub-folder container (indented) */
+.explorer-sub {
+  border-left: 1px solid #21262d;
+  margin-left: 18px;
+}
+
+[data-theme="light"] .explorer-sub { border-color: #d0d7de; }
+
+/* Footer */
+.explorer-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: #161b22;
+  border-top: 1px solid #30363d;
+  flex-shrink: 0;
+}
+
+[data-theme="light"] .explorer-footer {
+  background: #f6f8fa;
+  border-color: #d0d7de;
+}
+
+.explorer-footer-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #8b949e;
+  font-family: var(--font-mono);
+}
+
+.explorer-footer-tip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #8b949e;
+}
+
+/* Tombol Files di kartu project */
+.explorer-trigger-btn {
+  border-color: rgba(88, 166, 255, 0.2) !important;
+  color: #58a6ff !important;
+  background: rgba(88, 166, 255, 0.05) !important;
+}
+
+.explorer-trigger-btn:hover {
+  background: rgba(88, 166, 255, 0.12) !important;
+  border-color: rgba(88, 166, 255, 0.4) !important;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .explorer-container {
+    max-height: 90vh;
+    border-radius: var(--radius);
+  }
+
+  .explorer-title {
+    max-width: 160px;
+    font-size: 12px;
+  }
+
+  .explorer-subtitle { display: none; }
+  .explorer-footer-tip { display: none; }
+}
