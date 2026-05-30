@@ -272,3 +272,336 @@ function escapeHtml(str) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 }
+
+// ================================================================
+// FILE EXPLORER — State & Render
+// ================================================================
+
+// Simpan state explorer per repo (mana folder yang sedang terbuka)
+const explorerState = {};
+
+// ================================================================
+// Buka modal File Explorer untuk satu repository
+// ================================================================
+async function openFileExplorer(repoName, repoUrl) {
+  // Buat atau tampilkan modal explorer
+  ensureExplorerModal();
+
+  const modal = document.getElementById("file-explorer-modal");
+  const titleEl = document.getElementById("explorer-repo-name");
+  const treeEl = document.getElementById("explorer-tree");
+  const loadingEl = document.getElementById("explorer-loading");
+
+  // Set judul repo
+  if (titleEl) titleEl.textContent = repoName;
+
+  // Tampilkan modal dengan state loading
+  modal.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+
+  if (treeEl) treeEl.innerHTML = "";
+  if (loadingEl) loadingEl.classList.remove("hidden");
+
+  // Inisialisasi state folder terbuka untuk repo ini
+  if (!explorerState[repoName]) {
+    explorerState[repoName] = new Set([""]); // root selalu terbuka
+  }
+
+  // Fetch tree
+  const tree = await fetchRepoTree(repoName);
+
+  if (loadingEl) loadingEl.classList.add("hidden");
+
+  if (!tree) {
+    if (treeEl) treeEl.innerHTML = `
+      <div style="text-align:center;padding:40px;color:var(--text-tertiary);">
+        <span style="font-size:32px;">😕</span>
+        <p style="margin-top:12px;">Gagal memuat struktur file.<br/>Repository mungkin kosong atau private.</p>
+      </div>
+    `;
+    return;
+  }
+
+  // Render tree
+  renderExplorerTree(treeEl, tree, repoName, repoUrl);
+}
+
+// ================================================================
+// Render pohon file secara rekursif
+// ================================================================
+function renderExplorerTree(container, node, repoName, repoUrl, depth = 0) {
+  if (!container) return;
+
+  // Render children dari root, atau node itu sendiri jika bukan root
+  const items = depth === 0 ? node.children : [node];
+
+  if (!items || items.length === 0) {
+    if (depth === 0) {
+      container.innerHTML = `
+        <div style="text-align:center;padding:32px;color:var(--text-tertiary);">
+          <span>Repositori ini kosong.</span>
+        </div>
+      `;
+    }
+    return;
+  }
+
+  const ul = document.createElement("ul");
+  ul.className = "explorer-list";
+  ul.style.paddingLeft = depth === 0 ? "0" : "18px";
+
+  items.forEach(child => {
+    const li = document.createElement("li");
+    li.className = "explorer-item";
+
+    const iconInfo = getFileIcon(child.name, child.type);
+    const isOpen = explorerState[repoName]?.has(child.path);
+
+    if (child.type === "tree") {
+      // ── FOLDER ──
+      const folderRow = document.createElement("div");
+      folderRow.className = `explorer-row explorer-folder ${isOpen ? "open" : ""}`;
+      folderRow.dataset.path = child.path;
+      folderRow.innerHTML = `
+        <span class="explorer-arrow">${isOpen ? "▾" : "▸"}</span>
+        <span class="explorer-icon">${isOpen ? iconInfo.iconOpen : iconInfo.icon}</span>
+        <span class="explorer-name" style="color:${iconInfo.color}">${escapeHtml(child.name)}</span>
+        <span class="explorer-badge">${countFiles(child)}</span>
+      `;
+
+      const subContainer = document.createElement("div");
+      subContainer.className = "explorer-sub";
+      subContainer.style.display = isOpen ? "block" : "none";
+
+      folderRow.addEventListener("click", () => {
+        const nowOpen = explorerState[repoName]?.has(child.path);
+        if (nowOpen) {
+          explorerState[repoName].delete(child.path);
+          folderRow.classList.remove("open");
+          folderRow.querySelector(".explorer-arrow").textContent = "▸";
+          folderRow.querySelector(".explorer-icon").textContent = iconInfo.icon;
+          subContainer.style.display = "none";
+        } else {
+          explorerState[repoName] = explorerState[repoName] || new Set();
+          explorerState[repoName].add(child.path);
+          folderRow.classList.add("open");
+          folderRow.querySelector(".explorer-arrow").textContent = "▾";
+          folderRow.querySelector(".explorer-icon").textContent = iconInfo.iconOpen;
+          subContainer.style.display = "block";
+
+          // Render children jika belum ada
+          if (!subContainer.hasChildNodes()) {
+            child.children.forEach(grandchild => {
+              renderExplorerTree(subContainer, grandchild, repoName, repoUrl, depth + 1);
+            });
+          }
+        }
+      });
+
+      // Render isi folder jika sudah terbuka sebelumnya
+      if (isOpen) {
+        child.children.forEach(grandchild => {
+          renderExplorerTree(subContainer, grandchild, repoName, repoUrl, depth + 1);
+        });
+      }
+
+      li.appendChild(folderRow);
+      li.appendChild(subContainer);
+
+    } else {
+      // ── FILE ──
+      const fileRow = document.createElement("div");
+      fileRow.className = "explorer-row explorer-file";
+
+      // Tentukan URL tujuan klik
+      const targetUrl = child.isWebFile ? child.liveUrl : child.githubUrl;
+      const isLive = child.isWebFile;
+
+      fileRow.innerHTML = `
+        <span class="explorer-arrow" style="opacity:0;">▸</span>
+        <span class="explorer-icon">${iconInfo.icon}</span>
+        <a 
+          href="${escapeHtml(targetUrl)}" 
+          target="_blank" 
+          rel="noopener"
+          class="explorer-name explorer-file-link ${isLive ? "explorer-live-link" : ""}"
+          style="color:${iconInfo.color}"
+          title="${isLive ? '🌐 Buka Live Preview di GitHub Pages' : '📄 Lihat kode di GitHub'}"
+        >${escapeHtml(child.name)}</a>
+        ${isLive ? '<span class="explorer-live-badge">LIVE</span>' : ''}
+        ${child.size > 0 ? `<span class="explorer-size">${formatFileSize(child.size)}</span>` : ''}
+      `;
+
+      li.appendChild(fileRow);
+    }
+
+    ul.appendChild(li);
+  });
+
+  container.appendChild(ul);
+}
+
+// ================================================================
+// Hitung total file di dalam satu folder (rekursif)
+// ================================================================
+function countFiles(node) {
+  if (!node.children) return 0;
+  let count = 0;
+  node.children.forEach(child => {
+    if (child.type === "blob") count++;
+    else count += countFiles(child);
+  });
+  return count;
+}
+
+// ================================================================
+// Format ukuran file (bytes → KB/MB)
+// ================================================================
+function formatFileSize(bytes) {
+  if (bytes < 1024) return `${bytes}B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
+}
+
+// ================================================================
+// Buat modal File Explorer jika belum ada di DOM
+// ================================================================
+function ensureExplorerModal() {
+  if (document.getElementById("file-explorer-modal")) return;
+
+  const modal = document.createElement("div");
+  modal.id = "file-explorer-modal";
+  modal.className = "file-explorer-modal hidden";
+
+  modal.innerHTML = `
+    <div class="explorer-overlay"></div>
+    <div class="explorer-container">
+      
+      <!-- Header -->
+      <div class="explorer-header">
+        <div class="explorer-header-left">
+          <div class="explorer-dots">
+            <span class="dot dot-red"></span>
+            <span class="dot dot-yellow"></span>
+            <span class="dot dot-green"></span>
+          </div>
+          <span class="explorer-title-icon">📁</span>
+          <span id="explorer-repo-name" class="explorer-title">repository</span>
+        </div>
+        <div class="explorer-header-right">
+          <span class="explorer-subtitle">File Explorer</span>
+          <button class="explorer-close-btn" id="explorer-close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Breadcrumb / Path Bar -->
+      <div class="explorer-path-bar">
+        <span class="path-segment">~</span>
+        <span class="path-sep">/</span>
+        <span class="path-segment" id="explorer-path-repo">...</span>
+      </div>
+
+      <!-- Konten Tree -->
+      <div class="explorer-body">
+        <!-- Loading -->
+        <div id="explorer-loading" class="explorer-loading">
+          <div class="explorer-spinner"></div>
+          <span>Memuat struktur file...</span>
+        </div>
+
+        <!-- Tree -->
+        <div id="explorer-tree" class="explorer-tree"></div>
+      </div>
+
+      <!-- Footer -->
+      <div class="explorer-footer">
+        <span id="explorer-file-count" class="explorer-footer-info">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+          Memuat...
+        </span>
+        <span class="explorer-footer-tip">
+          <span class="explorer-live-badge" style="font-size:10px;">LIVE</span>
+          = Langsung ke GitHub Pages
+        </span>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  // Event: tutup modal
+  document.getElementById("explorer-close")?.addEventListener("click", closeFileExplorer);
+  modal.querySelector(".explorer-overlay")?.addEventListener("click", closeFileExplorer);
+
+  // Event: ESC
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !modal.classList.contains("hidden")) {
+      closeFileExplorer();
+    }
+  });
+}
+
+// ================================================================
+// Tutup modal File Explorer
+// ================================================================
+function closeFileExplorer() {
+  const modal = document.getElementById("file-explorer-modal");
+  if (modal) {
+    modal.classList.add("hidden");
+    document.body.style.overflow = "";
+  }
+}
+
+// ================================================================
+// Tambahkan tombol "File Explorer" ke setiap kartu project
+// ================================================================
+// Panggil fungsi ini SETELAH renderProjects() selesai
+function attachFileExplorerButtons() {
+  const grid = document.getElementById("projects-grid");
+  if (!grid) return;
+
+  // Cari semua kartu yang belum punya tombol explorer
+  grid.querySelectorAll(".project-card:not([data-explorer-attached])").forEach(card => {
+    const actionsEl = card.querySelector(".project-actions");
+    if (!actionsEl) return;
+
+    // Ambil nama repo dari link GitHub yang ada
+    const repoLink = card.querySelector(".project-name a");
+    if (!repoLink) return;
+
+    const href = repoLink.getAttribute("href") || "";
+    // Format: https://github.com/username/reponame
+    const parts = href.split("/");
+    const repoName = parts[parts.length - 1];
+    if (!repoName) return;
+
+    // Buat tombol explorer
+    const explorerBtn = document.createElement("button");
+    explorerBtn.className = "project-btn explorer-trigger-btn";
+    explorerBtn.title = "Jelajahi file repository ini";
+    explorerBtn.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+      </svg>
+      Files
+    `;
+
+    explorerBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      // Perbarui path bar saat buka
+      const pathEl = document.getElementById("explorer-path-repo");
+      if (pathEl) pathEl.textContent = repoName;
+      openFileExplorer(repoName, href);
+    });
+
+    actionsEl.appendChild(explorerBtn);
+    card.setAttribute("data-explorer-attached", "true");
+  });
+}
