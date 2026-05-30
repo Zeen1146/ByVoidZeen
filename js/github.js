@@ -210,3 +210,175 @@ function showError(msg) {
   body.appendChild(el);
   setTimeout(() => el.remove(), 5000);
 }
+
+// ================================================================
+// FILE EXPLORER — Ambil struktur file dari setiap repository
+// ================================================================
+
+// Cache agar tidak fetch berulang kali untuk repo yang sama
+const repoTreeCache = {};
+
+// ================================================================
+// Ambil file tree dari satu repository (recursive)
+// ================================================================
+async function fetchRepoTree(repoName) {
+  // Cek cache dulu
+  if (repoTreeCache[repoName]) return repoTreeCache[repoName];
+
+  try {
+    // Ambil branch default dulu
+    const repoRes = await fetch(
+      `${GH_API}/repos/${githubUsername}/${repoName}`,
+      { headers: { Accept: "application/vnd.github.v3+json" } }
+    );
+    if (!repoRes.ok) return null;
+    const repoInfo = await repoRes.json();
+    const branch = repoInfo.default_branch || "main";
+
+    // Ambil seluruh tree secara rekursif
+    const treeRes = await fetch(
+      `${GH_API}/repos/${githubUsername}/${repoName}/git/trees/${branch}?recursive=1`,
+      { headers: { Accept: "application/vnd.github.v3+json" } }
+    );
+    if (!treeRes.ok) return null;
+    const treeData = await treeRes.json();
+
+    // Susun flat list menjadi struktur folder bersarang
+    const structured = buildTreeStructure(treeData.tree || [], repoName, branch);
+
+    repoTreeCache[repoName] = structured;
+    return structured;
+  } catch (err) {
+    console.error(`Gagal fetch tree repo ${repoName}:`, err);
+    return null;
+  }
+}
+
+// ================================================================
+// Ubah flat list dari GitHub API menjadi struktur pohon bersarang
+// ================================================================
+function buildTreeStructure(flatItems, repoName, branch) {
+  const root = { name: repoName, type: "tree", children: [], path: "" };
+
+  // Ekstensi yang dianggap sebagai file web (akan dapat live link)
+  const webExts = [".html", ".htm", ".svg"];
+
+  flatItems.forEach(item => {
+    const parts = item.path.split("/");
+    let current = root;
+
+    parts.forEach((part, idx) => {
+      const isLast = idx === parts.length - 1;
+      const currentPath = parts.slice(0, idx + 1).join("/");
+
+      if (isLast && item.type === "blob") {
+        // Ini adalah file
+        const ext = part.includes(".") ? "." + part.split(".").pop().toLowerCase() : "";
+        const isWebFile = webExts.includes(ext);
+
+        // Buat URL live GitHub Pages jika file web
+        const liveUrl = isWebFile
+          ? `https://${githubUsername}.github.io/${repoName}/${item.path}`
+          : null;
+
+        // URL raw/blob GitHub biasa
+        const githubUrl = `https://github.com/${githubUsername}/${repoName}/blob/${branch}/${item.path}`;
+
+        current.children.push({
+          name: part,
+          type: "blob",
+          path: currentPath,
+          ext,
+          isWebFile,
+          liveUrl,
+          githubUrl,
+          size: item.size || 0,
+        });
+      } else {
+        // Ini adalah folder — cari atau buat node
+        let folder = current.children.find(c => c.name === part && c.type === "tree");
+        if (!folder) {
+          folder = { name: part, type: "tree", children: [], path: currentPath };
+          current.children.push(folder);
+        }
+        current = folder;
+      }
+    });
+  });
+
+  // Urutkan: folder dulu, lalu file, keduanya secara alfabet
+  sortTreeNodes(root);
+  return root;
+}
+
+// ================================================================
+// Urutkan node: folder dulu → file, masing-masing alfabet
+// ================================================================
+function sortTreeNodes(node) {
+  if (!node.children) return;
+  node.children.sort((a, b) => {
+    if (a.type === b.type) return a.name.localeCompare(b.name);
+    return a.type === "tree" ? -1 : 1;
+  });
+  node.children.forEach(child => {
+    if (child.type === "tree") sortTreeNodes(child);
+  });
+}
+
+// ================================================================
+// Deteksi ikon berdasarkan ekstensi / nama file
+// ================================================================
+function getFileIcon(name, type) {
+  if (type === "tree") return { icon: "📁", iconOpen: "📂", color: "#e2b96f" };
+
+  const n = name.toLowerCase();
+  const ext = n.includes(".") ? "." + n.split(".").pop() : "";
+
+  const map = {
+    ".html": { icon: "🌐", color: "#e34c26" },
+    ".htm":  { icon: "🌐", color: "#e34c26" },
+    ".css":  { icon: "🎨", color: "#563d7c" },
+    ".js":   { icon: "⚡", color: "#f7df1e" },
+    ".ts":   { icon: "💙", color: "#3178c6" },
+    ".jsx":  { icon: "⚛️", color: "#61dafb" },
+    ".tsx":  { icon: "⚛️", color: "#61dafb" },
+    ".py":   { icon: "🐍", color: "#3572A5" },
+    ".go":   { icon: "🐹", color: "#00ADD8" },
+    ".rs":   { icon: "🦀", color: "#dea584" },
+    ".java": { icon: "☕", color: "#b07219" },
+    ".kt":   { icon: "🟣", color: "#A97BFF" },
+    ".dart": { icon: "🎯", color: "#00B4AB" },
+    ".php":  { icon: "🐘", color: "#4F5D95" },
+    ".rb":   { icon: "💎", color: "#701516" },
+    ".sh":   { icon: "⚙️", color: "#89e051" },
+    ".md":   { icon: "📝", color: "#a1a1aa" },
+    ".json": { icon: "📦", color: "#eab308" },
+    ".xml":  { icon: "📄", color: "#ff6600" },
+    ".yml":  { icon: "⚙️", color: "#6daedb" },
+    ".yaml": { icon: "⚙️", color: "#6daedb" },
+    ".svg":  { icon: "🖼️", color: "#ffb13b" },
+    ".png":  { icon: "🖼️", color: "#22c55e" },
+    ".jpg":  { icon: "🖼️", color: "#22c55e" },
+    ".jpeg": { icon: "🖼️", color: "#22c55e" },
+    ".gif":  { icon: "🖼️", color: "#22c55e" },
+    ".webp": { icon: "🖼️", color: "#22c55e" },
+    ".pdf":  { icon: "📕", color: "#ef4444" },
+    ".zip":  { icon: "🗜️", color: "#a1a1aa" },
+    ".env":  { icon: "🔒", color: "#ef4444" },
+    ".gitignore": { icon: "👁️", color: "#a1a1aa" },
+  };
+
+  // Nama file khusus (tanpa ekstensi)
+  const specialNames = {
+    "readme":      { icon: "📖", color: "#a1a1aa" },
+    "license":     { icon: "⚖️", color: "#a1a1aa" },
+    "dockerfile":  { icon: "🐳", color: "#0db7ed" },
+    "makefile":    { icon: "🔨", color: "#a1a1aa" },
+    "package.json":{ icon: "📦", color: "#eab308" },
+  };
+
+  const specialMatch = specialNames[n] || specialNames[n.split(".")[0]];
+  if (specialMatch) return specialMatch;
+
+  return map[ext] || { icon: "📄", color: "#71717a" };
+}
