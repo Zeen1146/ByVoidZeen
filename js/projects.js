@@ -20,23 +20,23 @@ function initProjects(repos) {
 }
 
 // ================================================================
-// Tentukan kategori repository
+// Tentukan kategori repository — FIXED
 // ================================================================
 function getCategory(repo) {
-  const lang   = (repo.language || "").toLowerCase();
-  const topics = (repo.topics  || []).map(function(t) { return t.toLowerCase(); });
+  var lang   = (repo.language || "").toLowerCase().trim();
+  var topics = (repo.topics  || []).map(function(t) { return t.toLowerCase(); });
 
-  const website     = siteConfig.categories.website.map(function(l) { return l.toLowerCase(); });
-  const application = siteConfig.categories.application.map(function(l) { return l.toLowerCase(); });
-  const tools       = siteConfig.categories.tools.map(function(l) { return l.toLowerCase(); });
+  var websiteLangs     = ["html", "css", "javascript", "typescript", "vue", "svelte", "astro"];
+  var applicationLangs = ["flutter", "kotlin", "java", "swift", "dart"];
+  var toolsLangs       = ["python", "go", "rust", "shell", "ruby", "php", "c", "c++", "c#"];
 
   if (topics.some(function(t) { return ["web","website","frontend","react","vue","nextjs","astro","svelte"].includes(t); })) return "website";
   if (topics.some(function(t) { return ["android","ios","mobile","flutter","app"].includes(t); }))                          return "application";
   if (topics.some(function(t) { return ["cli","tool","script","automation","bot"].includes(t); }))                          return "tools";
 
-  if (website.includes(lang))     return "website";
-  if (application.includes(lang)) return "application";
-  if (tools.includes(lang))       return "tools";
+  if (websiteLangs.includes(lang))     return "website";
+  if (applicationLangs.includes(lang)) return "application";
+  if (toolsLangs.includes(lang))       return "tools";
 
   return "other";
 }
@@ -45,7 +45,7 @@ function getCategory(repo) {
 // Cek apakah project adalah "featured"
 // ================================================================
 function isFeatured(repo) {
-  const topics = (repo.topics || []).map(function(t) { return t.toLowerCase(); });
+  var topics = (repo.topics || []).map(function(t) { return t.toLowerCase(); });
   return siteConfig.featuredTopics.some(function(ft) {
     return topics.includes(ft.toLowerCase());
   });
@@ -347,7 +347,6 @@ function openFileExplorer(repoName) {
 
     if (treeEl) renderExplorerTree(treeEl, tree, repoName, 0);
 
-    // Hitung total file
     var total = countAllFiles(tree);
     if (footerEl) {
       footerEl.innerHTML =
@@ -367,7 +366,7 @@ function renderExplorerTree(container, node, repoName, depth) {
   if (!items || items.length === 0) return;
 
   var ul = document.createElement("ul");
-  ul.className   = "explorer-list";
+  ul.className         = "explorer-list";
   ul.style.paddingLeft = depth === 0 ? "0" : "18px";
 
   items.forEach(function(child) {
@@ -379,24 +378,24 @@ function renderExplorerTree(container, node, repoName, depth) {
 
     if (child.type === "tree") {
       // ── FOLDER ──
-      var folderRow = document.createElement("div");
-      folderRow.className   = "explorer-row explorer-folder" + (isOpen ? " open" : "");
+      var folderRow       = document.createElement("div");
+      folderRow.className = "explorer-row explorer-folder" + (isOpen ? " open" : "");
       folderRow.dataset.path = child.path;
 
-      var arrowSpan  = document.createElement("span");
+      var arrowSpan       = document.createElement("span");
       arrowSpan.className   = "explorer-arrow";
       arrowSpan.textContent = isOpen ? "▾" : "▸";
 
-      var iconSpan  = document.createElement("span");
-      iconSpan.className   = "explorer-icon";
-      iconSpan.textContent = isOpen ? iconInfo.iconOpen : iconInfo.icon;
+      var iconSpan        = document.createElement("span");
+      iconSpan.className    = "explorer-icon";
+      iconSpan.textContent  = isOpen ? iconInfo.iconOpen : iconInfo.icon;
 
-      var nameSpan  = document.createElement("span");
-      nameSpan.className   = "explorer-name";
-      nameSpan.style.color = iconInfo.color;
-      nameSpan.textContent = child.name;
+      var nameSpan        = document.createElement("span");
+      nameSpan.className    = "explorer-name";
+      nameSpan.style.color  = iconInfo.color;
+      nameSpan.textContent  = child.name;
 
-      var badgeSpan  = document.createElement("span");
+      var badgeSpan         = document.createElement("span");
       badgeSpan.className   = "explorer-badge";
       badgeSpan.textContent = countFiles(child);
 
@@ -405,11 +404,10 @@ function renderExplorerTree(container, node, repoName, depth) {
       folderRow.appendChild(nameSpan);
       folderRow.appendChild(badgeSpan);
 
-      var subContainer = document.createElement("div");
+      var subContainer          = document.createElement("div");
       subContainer.className    = "explorer-sub";
       subContainer.style.display = isOpen ? "block" : "none";
 
-      // Render anak jika sudah terbuka
       if (isOpen) {
         child.children.forEach(function(grandchild) {
           renderExplorerTree(subContainer, grandchild, repoName, depth + 1);
@@ -421,18 +419,17 @@ function renderExplorerTree(container, node, repoName, depth) {
         if (opened) {
           explorerState[repoName].delete(child.path);
           folderRow.classList.remove("open");
-          arrowSpan.textContent     = "▸";
-          iconSpan.textContent      = iconInfo.icon;
+          arrowSpan.textContent      = "▸";
+          iconSpan.textContent       = iconInfo.icon;
           subContainer.style.display = "none";
         } else {
           if (!explorerState[repoName]) explorerState[repoName] = new Set();
           explorerState[repoName].add(child.path);
           folderRow.classList.add("open");
-          arrowSpan.textContent     = "▾";
-          iconSpan.textContent      = iconInfo.iconOpen;
+          arrowSpan.textContent      = "▾";
+          iconSpan.textContent       = iconInfo.iconOpen;
           subContainer.style.display = "block";
 
-          // Render anak hanya sekali
           if (!subContainer.hasChildNodes()) {
             child.children.forEach(function(grandchild) {
               renderExplorerTree(subContainer, grandchild, repoName, depth + 1);
@@ -446,45 +443,45 @@ function renderExplorerTree(container, node, repoName, depth) {
 
     } else {
       // ── FILE ──
-      var fileRow = document.createElement("div");
+      var fileRow       = document.createElement("div");
       fileRow.className = "explorer-row explorer-file";
 
-      var fArrow = document.createElement("span");
-      fArrow.className   = "explorer-arrow";
+      var fArrow          = document.createElement("span");
+      fArrow.className    = "explorer-arrow";
       fArrow.style.opacity = "0";
-      fArrow.textContent = "▸";
+      fArrow.textContent  = "▸";
 
-      var fIcon = document.createElement("span");
-      fIcon.className   = "explorer-icon";
-      fIcon.textContent = iconInfo.icon;
+      var fIcon           = document.createElement("span");
+      fIcon.className     = "explorer-icon";
+      fIcon.textContent   = iconInfo.icon;
 
       var targetUrl = child.isWebFile ? child.liveUrl : child.githubUrl;
       var isLive    = child.isWebFile;
 
-      var fLink = document.createElement("a");
-      fLink.href      = targetUrl;
-      fLink.target    = "_blank";
-      fLink.rel       = "noopener";
-      fLink.className = "explorer-name explorer-file-link" + (isLive ? " explorer-live-link" : "");
-      fLink.style.color = iconInfo.color;
-      fLink.title       = isLive
+      var fLink           = document.createElement("a");
+      fLink.href          = targetUrl;
+      fLink.target        = "_blank";
+      fLink.rel           = "noopener";
+      fLink.className     = "explorer-name explorer-file-link" + (isLive ? " explorer-live-link" : "");
+      fLink.style.color   = iconInfo.color;
+      fLink.title         = isLive
         ? "🌐 Buka Live Preview di GitHub Pages"
         : "📄 Lihat kode di GitHub";
-      fLink.textContent = child.name;
+      fLink.textContent   = child.name;
 
       fileRow.appendChild(fArrow);
       fileRow.appendChild(fIcon);
       fileRow.appendChild(fLink);
 
       if (isLive) {
-        var liveBadge = document.createElement("span");
+        var liveBadge         = document.createElement("span");
         liveBadge.className   = "explorer-live-badge";
         liveBadge.textContent = "LIVE";
         fileRow.appendChild(liveBadge);
       }
 
       if (child.size > 0) {
-        var sizeSpan = document.createElement("span");
+        var sizeSpan         = document.createElement("span");
         sizeSpan.className   = "explorer-size";
         sizeSpan.textContent = formatFileSize(child.size);
         fileRow.appendChild(sizeSpan);
@@ -500,7 +497,7 @@ function renderExplorerTree(container, node, repoName, depth) {
 }
 
 // ================================================================
-// Hitung file dalam satu folder (satu level)
+// Hitung file dalam folder
 // ================================================================
 function countFiles(node) {
   if (!node.children) return 0;
@@ -512,9 +509,6 @@ function countFiles(node) {
   return count;
 }
 
-// ================================================================
-// Hitung total semua file (seluruh tree)
-// ================================================================
 function countAllFiles(node) {
   return countFiles(node);
 }
@@ -525,15 +519,13 @@ function countAllFiles(node) {
 function ensureExplorerModal() {
   if (document.getElementById("file-explorer-modal")) return;
 
-  var modal = document.createElement("div");
+  var modal       = document.createElement("div");
   modal.id        = "file-explorer-modal";
   modal.className = "file-explorer-modal hidden";
 
   modal.innerHTML =
     '<div class="explorer-overlay"></div>'
     + '<div class="explorer-container">'
-
-    // Header
     + '<div class="explorer-header">'
     +   '<div class="explorer-header-left">'
     +     '<div class="explorer-dots">'
@@ -553,15 +545,11 @@ function ensureExplorerModal() {
     +     '</button>'
     +   '</div>'
     + '</div>'
-
-    // Path bar
     + '<div class="explorer-path-bar">'
     +   '<span class="path-segment">~</span>'
     +   '<span class="path-sep">/</span>'
     +   '<span class="path-segment" id="explorer-path-repo">...</span>'
     + '</div>'
-
-    // Body
     + '<div class="explorer-body">'
     +   '<div id="explorer-loading" class="explorer-loading">'
     +     '<div class="explorer-spinner"></div>'
@@ -569,8 +557,6 @@ function ensureExplorerModal() {
     +   '</div>'
     +   '<div id="explorer-tree" class="explorer-tree"></div>'
     + '</div>'
-
-    // Footer
     + '<div class="explorer-footer">'
     +   '<span id="explorer-file-count" class="explorer-footer-info">'
     +     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">'
@@ -582,18 +568,13 @@ function ensureExplorerModal() {
     +     ' = GitHub Pages'
     +   '</span>'
     + '</div>'
-
-    + '</div>'; // .explorer-container
+    + '</div>';
 
   document.body.appendChild(modal);
 
-  // Tutup via tombol X
   document.getElementById("explorer-close").addEventListener("click", closeFileExplorer);
-
-  // Tutup via klik overlay
   modal.querySelector(".explorer-overlay").addEventListener("click", closeFileExplorer);
 
-  // Tutup via ESC — tambahkan listener sekali
   document.addEventListener("keydown", function(e) {
     if (e.key === "Escape") {
       var m = document.getElementById("file-explorer-modal");
